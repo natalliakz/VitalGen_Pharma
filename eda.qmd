@@ -1,0 +1,459 @@
+---
+title: "Clinical Trial Enrollment Analysis"
+subtitle: "VitalGen Therapeutics Portfolio Review"
+format:
+  html:
+    theme: _brand.yml
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+**DISCLAIMER**: This project contains synthetic data and analysis created for demonstration purposes only.
+
+## Executive Summary
+
+This analysis examines clinical trial enrollment patterns across VitalGen Therapeutics' portfolio. We analyze enrollment rates, site performance, and factors influencing successful patient recruitment to identify optimization opportunities.
+
+## Setup
+
+```{python}
+# Import libraries - demonstrating Python ETL with polars (similar to tidyverse/dplyr)
+import polars as pl
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+
+# Check if data exists, generate if not
+data_path = Path("data/synthetic-trials.csv")
+if not data_path.exists():
+    print("Generating synthetic data...")
+    import subprocess
+    subprocess.run(["python", "data/generate_data.py"], check=True)
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6)
+
+# Load data using polars (fast, modern alternative to pandas)
+trials = pl.read_csv("data/synthetic-trials.csv")
+sites = pl.read_csv("data/synthetic-sites.csv")
+enrollment = pl.read_csv("data/synthetic-enrollment.csv")
+demographics = pl.read_csv("data/synthetic-patient-demographics.csv")
+
+print(f"Loaded data: {len(trials)} trials, {len(sites)} sites, {len(demographics)} patients")
+```
+
+## Portfolio Overview
+
+```{python}
+# Using polars for data manipulation (similar to dplyr in R)
+portfolio_summary = (
+    trials
+    .group_by("phase")
+    .agg([
+        pl.count("trial_id").alias("n_trials"),
+        pl.col("target_enrollment").sum().alias("total_target"),
+        pl.col("n_sites").sum().alias("total_sites"),
+        pl.col("target_enrollment").mean().alias("avg_target")
+    ])
+    .sort("phase")
+)
+
+print(portfolio_summary)
+```
+
+### Trials by Therapeutic Area
+
+```{python}
+# Group by therapeutic area and phase
+therapeutic_distribution = (
+    trials
+    .group_by(["therapeutic_area", "phase"])
+    .agg(pl.count("trial_id").alias("n_trials"))
+    .sort(["therapeutic_area", "phase"])
+)
+
+# Convert to pandas for visualization
+ta_df = therapeutic_distribution.to_pandas()
+
+# Create visualization
+fig, ax = plt.subplots(figsize=(12, 6))
+ta_pivot = ta_df.pivot(index="therapeutic_area", columns="phase", values="n_trials").fillna(0)
+ta_pivot.plot(kind="bar", ax=ax, color=["#003D7A", "#00A3A1", "#5CB3CC"])
+ax.set_title("Trial Distribution by Therapeutic Area and Phase", fontsize=14, fontweight="bold")
+ax.set_xlabel("Therapeutic Area")
+ax.set_ylabel("Number of Trials")
+ax.legend(title="Phase")
+plt.xticks(rotation=45, ha="right")
+plt.tight_layout()
+plt.show()
+```
+
+## Enrollment Performance Analysis
+
+```{python}
+# Calculate enrollment metrics by trial using polars
+enrollment_summary = (
+    enrollment
+    .group_by("trial_id")
+    .agg([
+        pl.col("cumulative_enrolled").max().alias("actual_enrollment"),
+        pl.col("target_per_site").first().alias("target_per_site"),
+        pl.col("month").max().alias("months_elapsed")
+    ])
+    .join(trials.select(["trial_id", "phase", "therapeutic_area", "target_enrollment"]), on="trial_id")
+)
+
+# Calculate enrollment rate per site per month
+enrollment_summary = enrollment_summary.with_columns([
+    (pl.col("actual_enrollment") / pl.col("target_enrollment") * 100).alias("pct_of_target"),
+    (pl.col("actual_enrollment") / pl.col("months_elapsed")).alias("enrollment_rate_per_month")
+])
+
+print(enrollment_summary.head())
+```
+
+### Enrollment Achievement by Phase
+
+```{python}
+# Analyze enrollment success by phase
+phase_performance = (
+    enrollment_summary
+    .group_by("phase")
+    .agg([
+        pl.col("pct_of_target").mean().alias("avg_pct_of_target"),
+        pl.col("enrollment_rate_per_month").mean().alias("avg_enrollment_rate"),
+        pl.count("trial_id").alias("n_trials")
+    ])
+    .sort("phase")
+)
+
+print(phase_performance)
+
+# Visualization
+perf_df = phase_performance.to_pandas()
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+# Average % of target
+ax1.bar(perf_df["phase"], perf_df["avg_pct_of_target"], color=["#003D7A", "#00A3A1", "#5CB3CC"])
+ax1.axhline(y=100, color='red', linestyle='--', label='Target')
+ax1.set_title("Average Enrollment Achievement by Phase", fontweight="bold")
+ax1.set_ylabel("% of Target Enrollment")
+ax1.set_ylim(0, max(perf_df["avg_pct_of_target"]) * 1.2)
+ax1.legend()
+
+# Average enrollment rate
+ax2.bar(perf_df["phase"], perf_df["avg_enrollment_rate"], color=["#003D7A", "#00A3A1", "#5CB3CC"])
+ax2.set_title("Average Monthly Enrollment Rate by Phase", fontweight="bold")
+ax2.set_ylabel("Patients per Month")
+
+plt.tight_layout()
+plt.show()
+```
+
+## Site Performance Analysis
+
+```{python}
+# Analyze site-level factors using polars
+site_enrollment = (
+    enrollment
+    .group_by("site_id")
+    .agg([
+        pl.col("cumulative_enrolled").max().alias("total_enrolled"),
+        pl.col("month").max().alias("months_active")
+    ])
+    .join(sites, on="site_id")
+)
+
+# Calculate enrollment rate per site
+site_enrollment = site_enrollment.with_columns([
+    (pl.col("total_enrolled") / pl.col("months_active")).alias("patients_per_month")
+])
+
+print(site_enrollment.head())
+```
+
+### Top Performing Sites by Country
+
+```{python}
+# Country-level performance using polars aggregations
+country_performance = (
+    site_enrollment
+    .group_by("country")
+    .agg([
+        pl.col("total_enrolled").sum().alias("total_patients"),
+        pl.col("patients_per_month").mean().alias("avg_rate"),
+        pl.count("site_id").alias("n_sites")
+    ])
+    .sort("total_patients", descending=True)
+)
+
+print(country_performance)
+
+# Visualization
+country_df = country_performance.to_pandas()
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.barh(country_df["country"], country_df["total_patients"], color="#00A3A1")
+ax.set_xlabel("Total Patients Enrolled")
+ax.set_title("Patient Enrollment by Country", fontsize=14, fontweight="bold")
+plt.tight_layout()
+plt.show()
+```
+
+### Site Type Analysis
+
+```{python}
+# Site type performance
+site_type_perf = (
+    site_enrollment
+    .group_by("site_type")
+    .agg([
+        pl.col("patients_per_month").mean().alias("avg_enrollment_rate"),
+        pl.col("patients_per_month").std().alias("std_enrollment_rate"),
+        pl.count("site_id").alias("n_sites")
+    ])
+    .sort("avg_enrollment_rate", descending=True)
+)
+
+print(site_type_perf)
+```
+
+## Investigator Experience Impact
+
+```{python}
+# Analyze relationship between investigator experience and enrollment
+# Using polars for efficient data manipulation
+
+# Create experience categories
+site_enrollment_exp = site_enrollment.with_columns([
+    pl.when(pl.col("investigator_experience_years") < 5)
+    .then(pl.lit("< 5 years"))
+    .when(pl.col("investigator_experience_years") < 10)
+    .then(pl.lit("5-10 years"))
+    .when(pl.col("investigator_experience_years") < 15)
+    .then(pl.lit("10-15 years"))
+    .otherwise(pl.lit("15+ years"))
+    .alias("experience_category")
+])
+
+experience_impact = (
+    site_enrollment_exp
+    .group_by("experience_category")
+    .agg([
+        pl.col("patients_per_month").mean().alias("avg_enrollment_rate"),
+        pl.col("patients_per_month").median().alias("median_enrollment_rate"),
+        pl.count("site_id").alias("n_sites")
+    ])
+)
+
+print(experience_impact)
+
+# Visualization
+exp_df = experience_impact.to_pandas()
+order = ["< 5 years", "5-10 years", "10-15 years", "15+ years"]
+exp_df["experience_category"] = pd.Categorical(exp_df["experience_category"], categories=order, ordered=True)
+exp_df = exp_df.sort_values("experience_category")
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.bar(exp_df["experience_category"], exp_df["avg_enrollment_rate"], color="#003D7A")
+ax.set_xlabel("Investigator Experience")
+ax.set_ylabel("Average Patients per Month")
+ax.set_title("Enrollment Rate by Investigator Experience", fontsize=14, fontweight="bold")
+plt.tight_layout()
+plt.show()
+```
+
+## Patient Demographics
+
+```{python}
+# Demographic analysis using polars
+demo_summary = (
+    demographics
+    .group_by(["gender", "ethnicity"])
+    .agg([
+        pl.count("patient_id").alias("n_patients"),
+        pl.col("age").mean().alias("avg_age")
+    ])
+    .sort("n_patients", descending=True)
+)
+
+print(demo_summary.head(10))
+```
+
+### Age Distribution
+
+```{python}
+# Age distribution
+demo_pd = demographics.to_pandas()
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+# Overall age distribution
+ax1.hist(demo_pd["age"], bins=30, color="#00A3A1", edgecolor="black")
+ax1.set_xlabel("Age")
+ax1.set_ylabel("Number of Patients")
+ax1.set_title("Patient Age Distribution", fontweight="bold")
+ax1.axvline(demo_pd["age"].mean(), color='red', linestyle='--', label=f'Mean: {demo_pd["age"].mean():.1f}')
+ax1.legend()
+
+# Age by gender
+demo_pd.boxplot(column="age", by="gender", ax=ax2)
+ax2.set_title("Age Distribution by Gender", fontweight="bold")
+ax2.set_xlabel("Gender")
+ax2.set_ylabel("Age")
+plt.suptitle("")
+
+plt.tight_layout()
+plt.show()
+```
+
+### Enrollment Diversity
+
+```{python}
+# Ethnicity distribution
+ethnicity_dist = (
+    demographics
+    .group_by("ethnicity")
+    .agg([
+        pl.count("patient_id").alias("n_patients")
+    ])
+    .with_columns([
+        (pl.col("n_patients") / pl.col("n_patients").sum() * 100).alias("percentage")
+    ])
+    .sort("n_patients", descending=True)
+)
+
+print(ethnicity_dist)
+
+# Visualization
+eth_df = ethnicity_dist.to_pandas()
+fig, ax = plt.subplots(figsize=(10, 6))
+colors = ["#003D7A", "#00A3A1", "#5CB3CC", "#F47B20", "#7AB800"]
+ax.pie(eth_df["n_patients"], labels=eth_df["ethnicity"], autopct='%1.1f%%', colors=colors)
+ax.set_title("Patient Enrollment by Ethnicity", fontsize=14, fontweight="bold")
+plt.tight_layout()
+plt.show()
+```
+
+## Enrollment Timeline Analysis
+
+```{python}
+# Time series analysis of enrollment trends
+# Parse dates and create monthly aggregations
+enrollment_ts = (
+    enrollment
+    .with_columns([
+        pl.col("enrollment_date").str.strptime(pl.Date, "%Y-%m-%d")
+    ])
+    .group_by("enrollment_date")
+    .agg([
+        pl.col("monthly_enrolled").sum().alias("total_enrolled")
+    ])
+    .sort("enrollment_date")
+)
+
+# Calculate cumulative enrollment
+enrollment_ts = enrollment_ts.with_columns([
+    pl.col("total_enrolled").cum_sum().alias("cumulative_total")
+])
+
+print(enrollment_ts.head(10))
+
+# Visualization
+ts_df = enrollment_ts.to_pandas()
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+
+# Monthly enrollment
+ax1.plot(ts_df["enrollment_date"], ts_df["total_enrolled"], color="#003D7A", linewidth=2)
+ax1.fill_between(ts_df["enrollment_date"], ts_df["total_enrolled"], alpha=0.3, color="#003D7A")
+ax1.set_ylabel("Patients Enrolled")
+ax1.set_title("Monthly Patient Enrollment Over Time", fontsize=14, fontweight="bold")
+ax1.grid(True, alpha=0.3)
+
+# Cumulative enrollment
+ax2.plot(ts_df["enrollment_date"], ts_df["cumulative_total"], color="#00A3A1", linewidth=2)
+ax2.fill_between(ts_df["enrollment_date"], ts_df["cumulative_total"], alpha=0.3, color="#00A3A1")
+ax2.set_xlabel("Date")
+ax2.set_ylabel("Cumulative Patients")
+ax2.set_title("Cumulative Patient Enrollment Over Time", fontsize=14, fontweight="bold")
+ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Key Insights
+
+### Enrollment Performance Highlights
+
+```{python}
+# Calculate key metrics using polars
+total_trials = len(trials)
+total_sites = len(sites)
+total_patients = len(demographics)
+avg_enrollment_rate = site_enrollment.select(pl.col("patients_per_month").mean()).item()
+avg_pct_target = enrollment_summary.select(pl.col("pct_of_target").mean()).item()
+
+# Top therapeutic area
+top_ta = (
+    trials
+    .group_by("therapeutic_area")
+    .agg(pl.count("trial_id").alias("n_trials"))
+    .sort("n_trials", descending=True)
+    .head(1)
+)
+
+print(f"""
+Key Metrics:
+------------
+Total Active Trials: {total_trials}
+Total Sites: {total_sites}
+Total Patients Enrolled: {total_patients}
+Average Enrollment Rate: {avg_enrollment_rate:.2f} patients/site/month
+Average Target Achievement: {avg_pct_target:.1f}%
+Top Therapeutic Area: {top_ta['therapeutic_area'][0]} ({top_ta['n_trials'][0]} trials)
+""")
+```
+
+### Recommendations
+
+Based on this analysis:
+
+1. **Site Selection**: Sites with experienced investigators (15+ years) show higher enrollment rates
+2. **Geographic Focus**: USA sites account for the largest share of enrollment
+3. **Site Type**: Academic Medical Centers demonstrate strong performance
+4. **Patient Demographics**: Continue focus on diversity initiatives to ensure representative enrollment
+5. **Enrollment Optimization**: Phase III trials may benefit from additional sites to meet aggressive targets
+
+## Technical Notes
+
+This analysis demonstrates:
+
+- **Python ETL with Polars**: Modern, fast data manipulation (alternative to R's tidyverse/dplyr)
+- **Data transformations**: Filtering, grouping, aggregating, and joining datasets efficiently
+- **Visualization**: Using matplotlib and seaborn for insights
+- **Quarto integration**: Reproducible analysis and reporting
+
+### Comparison: Polars vs. Pandas/R dplyr
+
+Polars syntax is similar to dplyr in R:
+
+- **Filter**: `.filter()` ~ `filter()` in dplyr
+- **Select**: `.select()` ~ `select()` in dplyr
+- **Group by**: `.group_by().agg()` ~ `group_by() %>% summarize()` in dplyr
+- **Join**: `.join()` ~ `left_join()` in dplyr
+- **Mutate**: `.with_columns()` ~ `mutate()` in dplyr
+
+Polars is significantly faster than pandas for large datasets and has a more consistent API.
+
+---
+
+*Analysis conducted using synthetic data for demonstration purposes only. All data is AI-generated.*
