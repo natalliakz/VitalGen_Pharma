@@ -40,21 +40,21 @@
   "test_f1": 0.989247311827957,
   "test_roc_auc": 0.8247282608695652,
   "feature_importance": {
-    "Trial Phase": 0.12973710622644966,
-    "Therapeutic Area": 0.030372897378217394,
-    "Country": 0.02457332006894522,
-    "Site Type": 0.013292868410071504,
+    "Trial Phase": 0.1297371062264497,
+    "Therapeutic Area": 0.030372897378217408,
+    "Country": 0.024573320068945227,
+    "Site Type": 0.013292868410071507,
     "Population Density": 0.019110293625720906,
-    "Investigator Experience (years)": 0.1500040743287845,
-    "Site Staff Count": 0.1317995358565234,
-    "Prior Trials Completed": 0.05427764146576422,
-    "Patient Database Size": 0.10621868842145701,
+    "Investigator Experience (years)": 0.15000407432878454,
+    "Site Staff Count": 0.13179953585652343,
+    "Prior Trials Completed": 0.05427764146576424,
+    "Patient Database Size": 0.10621868842145703,
     "Distance to Metro (km)": 0.06489056209286853,
-    "Inclusion Criteria Count": 0.054603848981386094,
-    "Exclusion Criteria Count": 0.023090896876959418,
-    "Protocol Amendments": 0.03316268388482052,
-    "Target Enrollment per Site": 0.16486558238203142
+    "Inclusion Criteria Count": 0.05460384898138613,
+    "Exclusion Criteria Count": 0.023090896876959425,
+    "Protocol Amendments": 0.03316268388482054,
+    "Target Enrollment per Site": 0.16486558238203144
   },
   "target_variable": "enrollment_success",
-  "created_date": "2026-02-02"
+  "created_date": "2026-06-24"
 }

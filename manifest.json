@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "locale": "en_US",
+  "platform": "3.13.11",
+  "metadata": {
+    "appmode": "python-shiny",
+    "entrypoint": "app:app",
+    "primary_rmd": null,
+    "primary_html": null,
+    "content_category": null,
+    "has_parameters": false
+  },
+  "python": {
+    "version": "3.13.11",
+    "package_manager": "pip"
+  },
+  "packages": null,
+  "files": {
+    "app.py": {
+      "checksum": "md5:1d3ec2dd42ac28d4d1fd5ac569bc755e"
+    },
+    "requirements.txt": {
+      "checksum": "md5:04fe732883670c46117e3915e21b6a94"
+    },
+    "_brand.yml": {
+      "checksum": "md5:31175f90957fb894963e0bb191043843"
+    },
+    "data/synthetic-enrollment.csv": {
+      "checksum": "md5:e545b15d7b022f3e6d07bba333fd805b"
+    },
+    "data/generate_data.py": {
+      "checksum": "md5:943f24789c1ff3cf57a29ee286a2a68a"
+    },
+    "data/synthetic-trials.csv": {
+      "checksum": "md5:367bc6f1c61d44ed1c798bc136acefb3"
+    },
+    "data/synthetic-patient-demographics.csv": {
+      "checksum": "md5:ca4f956367ced4a90f6d9aadae6f93e3"
+    },
+    "data/synthetic-sites.csv": {
+      "checksum": "md5:a05367baa7b6daf676600e26d9bd05b1"
+    },
+    "ml/enrollment_model.joblib": {
+      "checksum": "md5:18909f48cb2dac7ec2dce671fb2cd63c"
+    },
+    "ml/scaler.joblib": {
+      "checksum": "md5:5b10a27eae814fdb458816406bff418e"
+    },
+    "ml/encoders.joblib": {
+      "checksum": "md5:8c1550780eed28aab91a8167675a60f6"
+    },
+    "ml/model_utils.py": {
+      "checksum": "md5:9cf33dece29e744dc38425b454055a0f"
+    },
+    "ml/train_model.py": {
+      "checksum": "md5:9d5f2d144af4f5c5e9608e7143f282a9"
+    },
+    "ml/model_metadata.json": {
+      "checksum": "md5:a238f68866e662492e720eef26ca6e81"
+    }
+  }
+}
