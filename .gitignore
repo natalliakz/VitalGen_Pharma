@@ -17,7 +17,6 @@ data/*.json
 
 # Machine learning models
 ml/*.pkl
-ml/*.joblib
 ml/*.h5
 ml/*.pt
 
