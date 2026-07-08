@@ -1,62 +1,92 @@
 {
   "version": 1,
-  "locale": "en_US",
-  "platform": "3.13.11",
+  "locale": "en_US.UTF-8",
   "metadata": {
     "appmode": "python-shiny",
-    "entrypoint": "app:app",
-    "primary_rmd": null,
-    "primary_html": null,
-    "content_category": null,
-    "has_parameters": false
+    "entrypoint": "app"
   },
   "python": {
     "version": "3.13.11",
-    "package_manager": "pip"
+    "package_manager": {
+      "name": "pip",
+      "version": "26.1.2",
+      "package_file": "requirements.txt"
+    }
   },
-  "packages": null,
+  "environment": {
+    "python": {
+      "requires": "~=3.13.0"
+    }
+  },
   "files": {
-    "app.py": {
-      "checksum": "md5:1d3ec2dd42ac28d4d1fd5ac569bc755e"
-    },
     "requirements.txt": {
-      "checksum": "md5:04fe732883670c46117e3915e21b6a94"
+      "checksum": "04fe732883670c46117e3915e21b6a94"
+    },
+    ".gitignore": {
+      "checksum": "adfc462606d6fca33ec6d9ebe3808212"
+    },
+    ".posit/publish/Clinical Trial Enrollment Anal-VKMS.toml": {
+      "checksum": "39025d9018482afd7c3f958cc3b67005"
+    },
+    ".posit/publish/VitalGen_Pharma-0DQR.toml": {
+      "checksum": "7eba9ea7cbdc1122e7b829b8d7eebad4"
+    },
+    ".posit/publish/deployments/deployment-PHQL.toml": {
+      "checksum": "6160736623a99aac08c7d6cf7688011d"
+    },
+    ".posit/publish/deployments/deployment-QSP5.toml": {
+      "checksum": "db0b3b415d3a9e2fb01bddb5e56137e2"
+    },
+    ".python-version": {
+      "checksum": "789ee353b44223a8ed8031aa190631dd"
+    },
+    "README.md": {
+      "checksum": "c08006ae8bed99057b52e3fb040c73ae"
     },
     "_brand.yml": {
-      "checksum": "md5:31175f90957fb894963e0bb191043843"
+      "checksum": "31175f90957fb894963e0bb191043843"
     },
-    "data/synthetic-enrollment.csv": {
-      "checksum": "md5:e545b15d7b022f3e6d07bba333fd805b"
+    "app.py": {
+      "checksum": "1d3ec2dd42ac28d4d1fd5ac569bc755e"
     },
     "data/generate_data.py": {
-      "checksum": "md5:943f24789c1ff3cf57a29ee286a2a68a"
+      "checksum": "943f24789c1ff3cf57a29ee286a2a68a"
     },
-    "data/synthetic-trials.csv": {
-      "checksum": "md5:367bc6f1c61d44ed1c798bc136acefb3"
+    "data/synthetic-enrollment.csv": {
+      "checksum": "e545b15d7b022f3e6d07bba333fd805b"
     },
     "data/synthetic-patient-demographics.csv": {
-      "checksum": "md5:ca4f956367ced4a90f6d9aadae6f93e3"
+      "checksum": "ca4f956367ced4a90f6d9aadae6f93e3"
     },
     "data/synthetic-sites.csv": {
-      "checksum": "md5:a05367baa7b6daf676600e26d9bd05b1"
+      "checksum": "a05367baa7b6daf676600e26d9bd05b1"
     },
-    "ml/enrollment_model.joblib": {
-      "checksum": "md5:18909f48cb2dac7ec2dce671fb2cd63c"
-    },
-    "ml/scaler.joblib": {
-      "checksum": "md5:5b10a27eae814fdb458816406bff418e"
+    "data/synthetic-trials.csv": {
+      "checksum": "367bc6f1c61d44ed1c798bc136acefb3"
     },
     "ml/encoders.joblib": {
-      "checksum": "md5:8c1550780eed28aab91a8167675a60f6"
+      "checksum": "8c1550780eed28aab91a8167675a60f6"
     },
-    "ml/model_utils.py": {
-      "checksum": "md5:9cf33dece29e744dc38425b454055a0f"
-    },
-    "ml/train_model.py": {
-      "checksum": "md5:9d5f2d144af4f5c5e9608e7143f282a9"
+    "ml/enrollment_model.joblib": {
+      "checksum": "18909f48cb2dac7ec2dce671fb2cd63c"
     },
     "ml/model_metadata.json": {
-      "checksum": "md5:a238f68866e662492e720eef26ca6e81"
+      "checksum": "a238f68866e662492e720eef26ca6e81"
+    },
+    "ml/model_utils.py": {
+      "checksum": "9cf33dece29e744dc38425b454055a0f"
+    },
+    "ml/scaler.joblib": {
+      "checksum": "5b10a27eae814fdb458816406bff418e"
+    },
+    "ml/train_model.py": {
+      "checksum": "9d5f2d144af4f5c5e9608e7143f282a9"
+    },
+    "pyproject.toml": {
+      "checksum": "86328cd10c26a1ad1f8873076a5d71f8"
+    },
+    "uv.lock": {
+      "checksum": "b5e3ef96131d377e04d75047425dd1a1"
     }
   }
 }
